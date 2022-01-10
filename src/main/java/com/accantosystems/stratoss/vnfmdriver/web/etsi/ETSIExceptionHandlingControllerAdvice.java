@@ -90,8 +90,8 @@ public class ETSIExceptionHandlingControllerAdvice {
     @ExceptionHandler(ResponseTypeNotAcceptableException.class)
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
     @ResponseBody
-    protected ProblemDetails handleResponseTypeNotAcceptableException(HttpServletRequest req, ResponseTypeNotAcceptableException cause) {
-        return defaultHandle("The requested response type was not acceptable", cause, HttpStatus.NOT_ACCEPTABLE);
+    protected ResponseEntity<String> handleResponseTypeNotAcceptableException(HttpServletRequest req, ResponseTypeNotAcceptableException cause) {
+        return new ResponseEntity<>("The requested response type was not acceptable", HttpStatus.NOT_ACCEPTABLE);
     }
 
     @ExceptionHandler(BadRequestException.class)
