@@ -5,7 +5,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.etsi.sol003.common.ProblemDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageConversionException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -91,8 +90,8 @@ public class ETSIExceptionHandlingControllerAdvice {
     @ExceptionHandler(ResponseTypeNotAcceptableException.class)
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
     @ResponseBody
-    protected ResponseEntity<String> handleResponseTypeNotAcceptableException(HttpServletRequest req, ResponseTypeNotAcceptableException cause) {
-        return new ResponseEntity<>("The requested response type was not acceptable", HttpStatus.NOT_ACCEPTABLE);
+    protected ProblemDetails handleResponseTypeNotAcceptableException(HttpServletRequest req, ResponseTypeNotAcceptableException cause) {
+        return defaultHandle("The requested response type was not acceptable", cause, HttpStatus.NOT_ACCEPTABLE);
     }
 
     @ExceptionHandler(BadRequestException.class)
