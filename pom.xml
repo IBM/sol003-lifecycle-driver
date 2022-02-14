@@ -13,7 +13,7 @@
     <!-- Must be duplicated for versions:set plugin to work in builds -->
     <groupId>com.accantosystems.stratoss</groupId>
     <artifactId>sol003-lifecycle-driver</artifactId>
-    <version>0.2.6</version>
+    <version>0.2.6-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>SOL003 VNFM Driver</name>
