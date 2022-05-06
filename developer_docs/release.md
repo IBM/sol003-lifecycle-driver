@@ -1,6 +1,6 @@
 # Releasing the Driver
 
-The following guide details the steps for releasing the SOL003 Lifecycle Driver. This may only be performed by a user with admin rights to this Git repository and the ibmcom docker registry.
+The following guide details the steps for releasing the SOL003 Lifecycle Driver. This may only be performed by a user with admin rights to this Git repository and the `icr.io/cp4na-drivers` IBM Cloud Container Registry.
 
 ## 1. Ensure Milestone
 
@@ -52,7 +52,7 @@ Verify the CI/CD job has created a [release on Github](https://github.com/IBM/so
 
 Ensure the tag, title and changelog are all correct. Also ensure the helm chart `tgz` file has been attached.
 
-Verify the release has been published to [docker hub](https://hub.docker.com/r/ibmcom/sol003-lifecycle-driver/tags).
+Verify the release has been published to [icr](icr.io/cp4na-drivers).
 
 ## 7. Cleanup
 
@@ -80,7 +80,7 @@ Run the following command (the `dev` profile ensures extra log statements are av
 ```
 
 This should produce 2 artifacts:
-- a locally built docker image, e.g. `ibmcom/sol003-lifecycle-driver:0.2.0`
+- a locally built docker image, e.g. `icr.io/cp4na-drivers/sol003-lifecycle-driver:0.2.0`
 - a helm chart, e.g. `sol003-lifecycle-driver-0.2.0.tgz`
 
 Verify the docker image has been produced by running
@@ -97,7 +97,8 @@ ls target/helm/repo
 
 The Docker image not been pushed by the previous build step so must be done manually, e.g.
 ```
-docker push ibmcom/sol003-lifecycle-driver:0.2.0
+echo <IAMAPIKEY> | docker login --username iamapikey --password-stdin icr.io/cp4na-drivers/
+docker push icr.io/cp4na-drivers/sol003-lifecycle-driver:0.2.0
 ```
 
 Complete the following:
