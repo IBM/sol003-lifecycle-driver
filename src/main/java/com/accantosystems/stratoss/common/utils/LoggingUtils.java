@@ -6,14 +6,32 @@ import java.util.Map;
 import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 
+import com.accantosystems.stratoss.vnfmdriver.driver.SOL003ResponseException;
+import com.accantosystems.stratoss.vnfmdriver.model.MessageDirection;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.http.HttpHeaders;
 
 public class LoggingUtils {
 
+    private final static Logger logger = LoggerFactory.getLogger(LoggingUtils.class);
+
     private static final String LOGGING_CONTEXT_KEY_PREFIX = "traceCtx.".toLowerCase();
     private static final String LOGGING_CONTEXT_HEADER_PREFIX = "X-TraceCtx-".toLowerCase();
     private static final String TRANSACTION_ID_HEADER_KEY = "TransactionId".toLowerCase();
+
+    private static final String LOG_MESSAGE_DIRECTION_KEY = "message_direction";
+
+    private static final String LOG_EXTERNAL_REQUEST_ID_KEY = "tracectx.externalrequestid";
+
+    private static final String LOG_CONTENT_TYPE_KEY = "content_type";
+
+    private static final String LOG_PROTOCOL_KEY = "protocol";
+
+    private static final String LOG_PROTOCOL_METADATA_KEY = "protocol_metadata";
 
     public static Map<String, String> getContextMapFromHttpHeaders(HttpServletRequest servletRequest) {
         final Map<String, String> loggingContext = new HashMap<>();
@@ -37,6 +55,28 @@ public class LoggingUtils {
         }
 
         return loggingContext;
+    }
+
+    public static void logEnabledMDC(String message, MessageDirection messageDirection, String externalRequestId, String contentType, String protocol, Map<String,Object> protocolMetadata){
+        try{
+            MDC.put(LOG_MESSAGE_DIRECTION_KEY, messageDirection.SENT.toString());
+            MDC.put(LOG_EXTERNAL_REQUEST_ID_KEY, externalRequestId);
+            MDC.put(LOG_CONTENT_TYPE_KEY, contentType);
+            MDC.put(LOG_PROTOCOL_KEY, protocol.toLowerCase());
+            ObjectMapper jsonMapper = new ObjectMapper();
+            try {
+                MDC.put(LOG_PROTOCOL_METADATA_KEY, jsonMapper.writeValueAsString(protocolMetadata));
+            } catch (JsonProcessingException e) {
+                throw  new SOL003ResponseException("Error in parsing protocol_metadata "+ protocolMetadata, e);
+            }
+            logger.info(message);
+        }finally{
+            MDC.remove(LOG_MESSAGE_DIRECTION_KEY);
+            MDC.remove(LOG_EXTERNAL_REQUEST_ID_KEY);
+            MDC.remove(LOG_CONTENT_TYPE_KEY);
+            MDC.remove(LOG_PROTOCOL_KEY);
+            MDC.remove(LOG_PROTOCOL_METADATA_KEY);
+        }
     }
 
     public static void setHttpHeadersFromMDC(final HttpHeaders httpHeaders) {
