@@ -39,6 +39,7 @@
         <helm.repo.api.url>${helm.repo.addr}/api/accanto</helm.repo.api.url>
         <helm.repo.snapshots.url>${helm.repo.addr}/accanto/snapshots</helm.repo.snapshots.url>
         <helm.repo.url>${helm.repo.addr}/accanto/stable</helm.repo.url>
+        <jackson.version>2.12.4</jackson.version>
         <jacoco-maven-plugin.version>0.8.4</jacoco-maven-plugin.version>
         <java.version>1.8</java.version>
         <kafka.version>3.0.0</kafka.version>
@@ -52,13 +53,12 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <project.testresult.directory>${project.build.directory}/test-results</project.testresult.directory>
         <scala.version>2.12</scala.version>
-        <sortpom-maven-plugin.version>2.8.0</sortpom-maven-plugin.version>
-        <springfox.version>3.0.0</springfox.version>
-        <wiremock.version>2.1.3.RELEASE</wiremock.version>
-        <tomcat.version>9.0.54</tomcat.version>
-        <jackson.version>2.12.4</jackson.version>
         <snakeyaml.version>1.26</snakeyaml.version>
+        <sortpom-maven-plugin.version>2.8.0</sortpom-maven-plugin.version>
         <spring-security.version>5.3.8.RELEASE</spring-security.version>
+        <springfox.version>3.0.0</springfox.version>
+        <tomcat.version>9.0.54</tomcat.version>
+        <wiremock.version>2.1.3.RELEASE</wiremock.version>
     </properties>
 
     <dependencies>
@@ -67,14 +67,14 @@
             <artifactId>jackson-dataformat-yaml</artifactId>
         </dependency>
         <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>${commons-io.version}</version>
-        </dependency>
-        <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>30.0-jre</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>${commons-io.version}</version>
         </dependency>
         <dependency>
             <groupId>io.micrometer</groupId>

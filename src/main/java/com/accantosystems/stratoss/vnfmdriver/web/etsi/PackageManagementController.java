@@ -77,6 +77,7 @@ public class PackageManagementController {
 
     @GetMapping(path = "/{vnfPkgId}/vnfd", produces = { MediaType.TEXT_PLAIN_VALUE, CONTENT_TYPE_APPLICATION_ZIP })
     @ApiOperation(value = "Reads the content of the VNFD within a VNF package.", notes = "This resource represents the VNFD contained in an on-boarded VNF package. The client can use this resource to obtain the content of the VNFD.")
+    @ExceptionHandler(ResponseTypeNotAcceptableException.class)
     public ResponseEntity<?> getVnfd(@RequestHeader("Accept") List<String> acceptHeader, @PathVariable String vnfPkgId) throws VNFPackageNotFoundException {
 
         logger.info("Received VNFD Get request for package id [{}]", vnfPkgId);
