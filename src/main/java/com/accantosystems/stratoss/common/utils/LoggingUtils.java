@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import com.accantosystems.stratoss.vnfmdriver.driver.SOL003ResponseException;
 import com.accantosystems.stratoss.vnfmdriver.model.MessageDirection;
+import com.accantosystems.stratoss.vnfmdriver.model.MessageType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -33,6 +34,8 @@ public class LoggingUtils {
 
     private static final String LOG_PROTOCOL_METADATA_KEY = "protocol_metadata";
 
+    private static final String LOG_MSG_TYP_KEY= "message_type";
+
     public static Map<String, String> getContextMapFromHttpHeaders(HttpServletRequest servletRequest) {
         final Map<String, String> loggingContext = new HashMap<>();
         final Enumeration<String> headerNames = servletRequest.getHeaderNames();
@@ -56,9 +59,9 @@ public class LoggingUtils {
 
         return loggingContext;
     }
-    public static void logEnabledMDC(String message, MessageDirection messageDirection, String externalRequestId, String contentType, String protocol, Map<String,Object> protocolMetadata){
+    public static void logEnabledMDC(String message, MessageType messageType, MessageDirection messageDirection, String externalRequestId, String contentType, String protocol, Map<String,Object> protocolMetadata){
         try{
-            MDC.put(LOG_MESSAGE_DIRECTION_KEY, messageDirection.SENT.toString());
+            MDC.put(LOG_MESSAGE_DIRECTION_KEY, messageDirection.toString());
             MDC.put(LOG_EXTERNAL_REQUEST_ID_KEY, externalRequestId);
             MDC.put(LOG_CONTENT_TYPE_KEY, contentType);
             MDC.put(LOG_PROTOCOL_KEY, protocol.toLowerCase());
@@ -68,6 +71,7 @@ public class LoggingUtils {
             } catch (JsonProcessingException e) {
                 throw  new SOL003ResponseException("Error in parsing protocol_metadata "+ protocolMetadata, e);
             }
+            MDC.put(LOG_MSG_TYP_KEY,"messageType");
             logger.info(message);
         }finally{
             MDC.remove(LOG_MESSAGE_DIRECTION_KEY);
