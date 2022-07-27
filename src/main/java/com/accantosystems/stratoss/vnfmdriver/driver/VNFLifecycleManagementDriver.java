@@ -535,8 +535,8 @@ public class VNFLifecycleManagementDriver {
 
         Map<String,Object> protocolMetadata=new HashMap<>();
 
-        protocolMetadata.put("status_code",responseEntity.getStatusCode());
-        protocolMetadata.put("status",responseEntity.getStatusCodeValue());
+        protocolMetadata.put("status",responseEntity.getStatusCode()!=null?responseEntity.getStatusCode():null);
+        protocolMetadata.put("status_code",responseEntity.getStatusCodeValue());
         protocolMetadata.put("url",url);
 
         return protocolMetadata;
