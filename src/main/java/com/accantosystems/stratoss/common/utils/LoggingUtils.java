@@ -36,6 +36,8 @@ public class LoggingUtils {
 
     private static final String LOG_MSG_TYP_KEY= "message_type";
 
+    private static final String LOG_DRIVER_REQUEST_ID ="tracectx.driverrequestid";
+
     public static Map<String, String> getContextMapFromHttpHeaders(HttpServletRequest servletRequest) {
         final Map<String, String> loggingContext = new HashMap<>();
         final Enumeration<String> headerNames = servletRequest.getHeaderNames();
@@ -59,7 +61,7 @@ public class LoggingUtils {
 
         return loggingContext;
     }
-    public static void logEnabledMDC(String message, MessageType messageType, MessageDirection messageDirection, String externalRequestId, String contentType, String protocol, Map<String,Object> protocolMetadata){
+    public static void logEnabledMDC(String message, MessageType messageType, MessageDirection messageDirection, String externalRequestId, String contentType, String protocol, Map<String,Object> protocolMetadata,String driverRequestId){
         try{
             MDC.put(LOG_MESSAGE_DIRECTION_KEY, messageDirection.toString());
             MDC.put(LOG_EXTERNAL_REQUEST_ID_KEY, externalRequestId);
@@ -71,7 +73,9 @@ public class LoggingUtils {
             } catch (JsonProcessingException e) {
                 throw  new SOL003ResponseException("Error in parsing protocol_metadata "+ protocolMetadata, e);
             }
-            MDC.put(LOG_MSG_TYP_KEY,"messageType");
+            MDC.put(LOG_MSG_TYP_KEY,messageType.toString());
+            MDC.put(LOG_DRIVER_REQUEST_ID,driverRequestId);
+
             logger.info(message);
         }finally{
             MDC.remove(LOG_MESSAGE_DIRECTION_KEY);
@@ -79,6 +83,8 @@ public class LoggingUtils {
             MDC.remove(LOG_CONTENT_TYPE_KEY);
             MDC.remove(LOG_PROTOCOL_KEY);
             MDC.remove(LOG_PROTOCOL_METADATA_KEY);
+            MDC.remove(LOG_MSG_TYP_KEY);
+            MDC.remove(LOG_DRIVER_REQUEST_ID);
         }
     }
 
