@@ -6,7 +6,7 @@
         <artifactId>spring-boot-starter-parent</artifactId>
         <groupId>org.springframework.boot</groupId>
         <version>2.2.2.RELEASE</version>
-        <relativePath />
+        <relativePath/>
         <!-- lookup parent from repository -->
     </parent>
 
@@ -33,7 +33,7 @@
         <docker-maven-plugin.version>1.0.0</docker-maven-plugin.version>
         <docker.directory>docker-ready</docker.directory>
         <docker.registry>icr.io/cp4na-drivers</docker.registry>
-        <guava.version>30.0-jre</guava.version>
+        <guava.version>30.1.1-jre</guava.version>
         <helm.chart.name>${project.artifactId}</helm.chart.name>
         <helm.download.url>https://get.helm.sh/${helm-client-executable}</helm.download.url>
         <helm.repo.addr>https://repo.helm.com</helm.repo.addr>
@@ -241,7 +241,7 @@
                                         </goals>
                                     </pluginExecutionFilter>
                                     <action>
-                                        <ignore />
+                                        <ignore/>
                                     </action>
                                 </pluginExecution>
                             </pluginExecutions>
