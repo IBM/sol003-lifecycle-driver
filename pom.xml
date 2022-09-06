@@ -6,7 +6,7 @@
         <artifactId>spring-boot-starter-parent</artifactId>
         <groupId>org.springframework.boot</groupId>
         <version>2.2.2.RELEASE</version>
-        <relativePath />
+        <relativePath/>
         <!-- lookup parent from repository -->
     </parent>
 
@@ -29,7 +29,7 @@
 
     <properties>
         <argLine>-Djava.security.egd=file:/dev/./urandom</argLine>
-        <commons-io.version>2.7</commons-io.version>
+        <commons-io.version>2.11.0</commons-io.version>
         <docker-maven-plugin.version>1.0.0</docker-maven-plugin.version>
         <docker.directory>docker-ready</docker.directory>
         <docker.registry>icr.io/cp4na-drivers</docker.registry>
@@ -241,7 +241,7 @@
                                         </goals>
                                     </pluginExecutionFilter>
                                     <action>
-                                        <ignore />
+                                        <ignore/>
                                     </action>
                                 </pluginExecution>
                             </pluginExecutions>
