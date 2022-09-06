@@ -6,7 +6,7 @@
         <artifactId>spring-boot-starter-parent</artifactId>
         <groupId>org.springframework.boot</groupId>
         <version>2.2.2.RELEASE</version>
-        <relativePath />
+        <relativePath/>
         <!-- lookup parent from repository -->
     </parent>
 
@@ -47,7 +47,7 @@
         <kafka.version>2.4.1</kafka.version>
         <kiwigrid.version>2.5</kiwigrid.version>
         <log4j.version>2.17.1</log4j.version>
-        <logstash-logback-encoder.version>5.1</logstash-logback-encoder.version>
+        <logstash-logback-encoder.version>5.3</logstash-logback-encoder.version>
         <maven-eclipse-plugin.version>2.10</maven-eclipse-plugin.version>
         <maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
         <maven.compiler.source>${java.version}</maven.compiler.source>
@@ -241,7 +241,7 @@
                                         </goals>
                                     </pluginExecutionFilter>
                                     <action>
-                                        <ignore />
+                                        <ignore/>
                                     </action>
                                 </pluginExecution>
                             </pluginExecutions>
