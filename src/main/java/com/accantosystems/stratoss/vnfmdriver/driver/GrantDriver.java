@@ -4,7 +4,13 @@ import static com.accantosystems.stratoss.vnfmdriver.config.VNFMDriverConstants.
 
 import java.net.URI;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
+import com.accantosystems.stratoss.common.utils.LoggingUtils;
+import com.accantosystems.stratoss.vnfmdriver.model.MessageDirection;
+import com.accantosystems.stratoss.vnfmdriver.model.MessageType;
 import org.etsi.sol003.granting.Grant;
 import org.etsi.sol003.granting.GrantRequest;
 import org.slf4j.Logger;
@@ -54,7 +60,7 @@ public class GrantDriver {
      * <li>If grant provider supports the synchronous path, should receive 201 Created response with a {@link Grant} resource as the response body</li>
      * <li>If grant provider supports the asynchronous path, should receive 202 Accepted response with no response body and Location header to poll for grant response</li>
      * </ul>
-     * 
+     *
      * @param grantRequest
      *            the request for permission from the NFVO to perform a particular VNF lifecycle operation.
      * @return the creation response, wrapping the grant resource if it exists and the grant location
@@ -73,7 +79,10 @@ public class GrantDriver {
         final HttpEntity<GrantRequest> requestEntity = new HttpEntity<>(grantRequest, headers);
         final ResponseEntity<Grant> responseEntity;
         try {
+            UUID uuid = UUID.randomUUID();
+            LoggingUtils.logEnabledMDC(grantRequest != null ? grantRequest.toString() : null, MessageType.REQUEST, MessageDirection.RECEIVED, uuid.toString(),MediaType.APPLICATION_JSON.toString(), "https",getRequestProtocolMetaData(url) ,grantRequest.getVnfLcmOpOccId());
             responseEntity = authenticatedRestTemplate.exchange(url, HttpMethod.POST, requestEntity, Grant.class);
+            LoggingUtils.logEnabledMDC(responseEntity.getBody() != null ? responseEntity.getBody().toString() : null, MessageType.RESPONSE,MessageDirection.SENT,uuid.toString(),MediaType.APPLICATION_JSON.toString(), "https",getProtocolMetaData(url,responseEntity),grantRequest.getVnfLcmOpOccId());
         } catch (SOL003ResponseException e) {
             throw new GrantProviderException(String.format("Unable to communicate with Grant Provider on [%s] which gave status %s", url, e.getProblemDetails().getStatus()), e);
         } catch (Exception e) {
@@ -107,7 +116,7 @@ public class GrantDriver {
      * <li>If grant has been accepted, should receive 200 OK response with a {@link Grant} resource as the response body</li>
      * <li>If grant decision is still pending, should receive 202 Accepted response with no response body</li>
      * </ul>
-     * 
+     *
      * @param grantId
      *            id of the grant resource on which a decision is pending
      * @return the grant resource if a grant decision has been made, null if still pending
@@ -124,7 +133,10 @@ public class GrantDriver {
         final HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
         final ResponseEntity<Grant> responseEntity;
         try {
+            UUID uuid = UUID.randomUUID();
+            LoggingUtils.logEnabledMDC(grantId, MessageType.REQUEST, MessageDirection.RECEIVED, uuid.toString(),MediaType.APPLICATION_JSON.toString(), "https",getRequestProtocolMetaData(url) ,null);
             responseEntity = authenticatedRestTemplate.exchange(url, HttpMethod.GET, requestEntity, Grant.class, grantId);
+            LoggingUtils.logEnabledMDC(responseEntity.getBody() != null ? responseEntity.getBody().toString() : null, MessageType.RESPONSE,MessageDirection.SENT,uuid.toString(),MediaType.APPLICATION_JSON.toString(), "https",getProtocolMetaData(url,responseEntity),null);
         } catch (SOL003ResponseException e) {
             throw new GrantProviderException(String.format("Unable to communicate with Grant Provider on [%s] which gave status %s", url, e.getProblemDetails().getStatus()), e);
         } catch (Exception e) {
@@ -164,24 +176,24 @@ public class GrantDriver {
 
         RestTemplate authenticatedRestTemplate;
         switch (authenticationType) {
-        case BASIC:
-            String username = checkProperty(authenticationProperties.getUsername(), AUTHENTICATION_USERNAME);
-            String password = checkProperty(authenticationProperties.getPassword(), AUTHENTICATION_PASSWORD);
+            case BASIC:
+                String username = checkProperty(authenticationProperties.getUsername(), AUTHENTICATION_USERNAME);
+                String password = checkProperty(authenticationProperties.getPassword(), AUTHENTICATION_PASSWORD);
 
-            authenticatedRestTemplate = getBasicAuthenticatedRestTemplate(customRestTemplateBuilder, username, password);
-            break;
-        case OAUTH2:
-            String accessTokenUri = checkProperty(authenticationProperties.getAccessTokenUri(), AUTHENTICATION_ACCESS_TOKEN_URI);
-            String clientId = checkProperty(authenticationProperties.getClientId(), AUTHENTICATION_CLIENT_ID);
-            String clientSecret = checkProperty(authenticationProperties.getClientSecret(), AUTHENTICATION_CLIENT_SECRET);
+                authenticatedRestTemplate = getBasicAuthenticatedRestTemplate(customRestTemplateBuilder, username, password);
+                break;
+            case OAUTH2:
+                String accessTokenUri = checkProperty(authenticationProperties.getAccessTokenUri(), AUTHENTICATION_ACCESS_TOKEN_URI);
+                String clientId = checkProperty(authenticationProperties.getClientId(), AUTHENTICATION_CLIENT_ID);
+                String clientSecret = checkProperty(authenticationProperties.getClientSecret(), AUTHENTICATION_CLIENT_SECRET);
 
-            authenticatedRestTemplate = getOAuth2RestTemplate(customRestTemplateBuilder, authenticationProperties, accessTokenUri, clientId, clientSecret);
+                authenticatedRestTemplate = getOAuth2RestTemplate(customRestTemplateBuilder, authenticationProperties, accessTokenUri, clientId, clientSecret);
 
-            break;
-        case COOKIE:
-            throw new UnsupportedOperationException("Attempting to use Cookie-based authentication which is unsupported for the grant provider.");
-        default:
-            authenticatedRestTemplate = getUnauthenticatedRestTemplate(customRestTemplateBuilder);
+                break;
+            case COOKIE:
+                throw new UnsupportedOperationException("Attempting to use Cookie-based authentication which is unsupported for the grant provider.");
+            default:
+                authenticatedRestTemplate = getUnauthenticatedRestTemplate(customRestTemplateBuilder);
         }
         return authenticatedRestTemplate;
     }
@@ -239,5 +251,23 @@ public class GrantDriver {
             throw new IllegalArgumentException(String.format("Must specify a property value for [%s]", propertyName));
         }
         return property;
+    }
+    Map<String,Object> getProtocolMetaData(String url, ResponseEntity responseEntity){
+
+        Map<String,Object> protocolMetadata=new HashMap<>();
+
+        protocolMetadata.put("status",responseEntity.getStatusCode());
+        protocolMetadata.put("status_code",responseEntity.getStatusCodeValue());
+        protocolMetadata.put("url",url);
+
+        return protocolMetadata;
+
+    }
+
+    Map<String,Object> getRequestProtocolMetaData(String url){
+
+        Map<String,Object> protocolMetadata=new HashMap<>();
+        protocolMetadata.put("url",url);
+        return protocolMetadata;
     }
 }
