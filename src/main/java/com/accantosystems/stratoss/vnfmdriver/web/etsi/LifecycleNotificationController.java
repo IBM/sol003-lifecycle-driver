@@ -1,10 +1,17 @@
 package com.accantosystems.stratoss.vnfmdriver.web.etsi;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
+import com.accantosystems.stratoss.common.utils.LoggingUtils;
+import com.accantosystems.stratoss.vnfmdriver.model.MessageDirection;
+import com.accantosystems.stratoss.vnfmdriver.model.MessageType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -40,9 +47,11 @@ public class LifecycleNotificationController {
     public ResponseEntity<Void> receiveNotification(@RequestBody LifecycleManagementNotification notification) {
         // TODO This should be reduced to DEBUG level, but it assists in development testing to see all notification messages being received
         logger.info("Received notification:\n{}", notification);
+        UUID uuid = UUID.randomUUID();
 
         if (notification instanceof VnfLcmOperationOccurenceNotification) {
             final VnfLcmOperationOccurenceNotification vnfLcmOpOccNotification = (VnfLcmOperationOccurenceNotification) notification;
+            LoggingUtils.logEnabledMDC(notification.toString(), MessageType.REQUEST, MessageDirection.RECEIVED, uuid.toString(), MediaType.APPLICATION_JSON.toString(), "https",null ,vnfLcmOpOccNotification.getVnfLcmOpOccId());
             // Send an update if this is completed
             if (vnfLcmOpOccNotification.getNotificationStatus() == VnfLcmOperationOccurenceNotification.NotificationStatus.RESULT){
                 ExecutionAsyncResponse asyncResponse = new ExecutionAsyncResponse(vnfLcmOpOccNotification.getVnfLcmOpOccId(), ExecutionStatus.COMPLETE, null, Collections.emptyMap(), Collections.emptyMap());
@@ -56,6 +65,7 @@ public class LifecycleNotificationController {
                 }
                 externalMessagingService.sendExecutionAsyncResponse(asyncResponse);
             }
+            LoggingUtils.logEnabledMDC("", MessageType.RESPONSE, MessageDirection.SENT,uuid.toString(),MediaType.APPLICATION_JSON.toString(), "https",null,vnfLcmOpOccNotification.getVnfLcmOpOccId());
         }
 
         return ResponseEntity.noContent().build();
