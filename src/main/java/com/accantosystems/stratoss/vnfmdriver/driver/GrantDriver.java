@@ -78,11 +78,17 @@ public class GrantDriver {
 
         final HttpEntity<GrantRequest> requestEntity = new HttpEntity<>(grantRequest, headers);
         final ResponseEntity<Grant> responseEntity;
+        String driverRequestId = "";
+        String grantRequestMsg = "";
+        if(grantRequest != null){
+            driverRequestId = grantRequest.getVnfLcmOpOccId();
+            grantRequestMsg = grantRequest.toString();
+        }
         try {
             UUID uuid = UUID.randomUUID();
-            LoggingUtils.logEnabledMDC(grantRequest != null ? grantRequest.toString() : null, MessageType.REQUEST, MessageDirection.RECEIVED, uuid.toString(),MediaType.APPLICATION_JSON.toString(), "https",getRequestProtocolMetaData(url) ,grantRequest.getVnfLcmOpOccId());
+            LoggingUtils.logEnabledMDC(grantRequestMsg, MessageType.REQUEST, MessageDirection.RECEIVED, uuid.toString(),MediaType.APPLICATION_JSON.toString(), "https",getRequestProtocolMetaData(url) ,driverRequestId);
             responseEntity = authenticatedRestTemplate.exchange(url, HttpMethod.POST, requestEntity, Grant.class);
-            LoggingUtils.logEnabledMDC(responseEntity.getBody() != null ? responseEntity.getBody().toString() : null, MessageType.RESPONSE,MessageDirection.SENT,uuid.toString(),MediaType.APPLICATION_JSON.toString(), "https",getProtocolMetaData(url,responseEntity),grantRequest.getVnfLcmOpOccId());
+            LoggingUtils.logEnabledMDC(responseEntity != null ? responseEntity.getBody().toString() : null, MessageType.RESPONSE,MessageDirection.SENT,uuid.toString(),MediaType.APPLICATION_JSON.toString(), "https",getProtocolMetaData(url,responseEntity),driverRequestId);
         } catch (SOL003ResponseException e) {
             throw new GrantProviderException(String.format("Unable to communicate with Grant Provider on [%s] which gave status %s", url, e.getProblemDetails().getStatus()), e);
         } catch (Exception e) {
@@ -136,7 +142,7 @@ public class GrantDriver {
             UUID uuid = UUID.randomUUID();
             LoggingUtils.logEnabledMDC(grantId, MessageType.REQUEST, MessageDirection.RECEIVED, uuid.toString(),MediaType.APPLICATION_JSON.toString(), "https",getRequestProtocolMetaData(url) ,null);
             responseEntity = authenticatedRestTemplate.exchange(url, HttpMethod.GET, requestEntity, Grant.class, grantId);
-            LoggingUtils.logEnabledMDC(responseEntity.getBody() != null ? responseEntity.getBody().toString() : null, MessageType.RESPONSE,MessageDirection.SENT,uuid.toString(),MediaType.APPLICATION_JSON.toString(), "https",getProtocolMetaData(url,responseEntity),null);
+            LoggingUtils.logEnabledMDC(responseEntity != null ? responseEntity.getBody().toString() : null, MessageType.RESPONSE,MessageDirection.SENT,uuid.toString(),MediaType.APPLICATION_JSON.toString(), "https",getProtocolMetaData(url,responseEntity),null);
         } catch (SOL003ResponseException e) {
             throw new GrantProviderException(String.format("Unable to communicate with Grant Provider on [%s] which gave status %s", url, e.getProblemDetails().getStatus()), e);
         } catch (Exception e) {
