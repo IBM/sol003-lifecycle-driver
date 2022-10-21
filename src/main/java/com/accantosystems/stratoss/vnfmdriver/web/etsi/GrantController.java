@@ -71,13 +71,22 @@ public class GrantController {
     public ResponseEntity<Grant> getGrant(@PathVariable String grantId) throws GrantRejectedException, GrantProviderException {
         logger.info("Received grant fetch for id [{}]", grantId);
         UUID uuid = UUID.randomUUID();
-        LoggingUtils.logEnabledMDC(grantId, MessageType.REQUEST, MessageDirection.RECEIVED, uuid.toString(),MediaType.APPLICATION_JSON.toString(), "https",getRequestProtocolMetaData(GRANT_LOCATION) ,null);
-        Grant grant = grantService.getGrant(grantId);
-        LoggingUtils.logEnabledMDC(grant != null ? grant.toString() : null, MessageType.RESPONSE,MessageDirection.SENT,grantId ,MediaType.APPLICATION_JSON.toString(), "https",null,null);
-        if (grant != null) {
-            return ResponseEntity.ok(grant);
-        } else {
-            return ResponseEntity.accepted().build();
+        try {
+            Grant grant = grantService.getGrant(grantId);
+            LoggingUtils.logEnabledMDC(grantId, MessageType.REQUEST, MessageDirection.RECEIVED, uuid.toString(), MediaType.APPLICATION_JSON.toString(), "https", getRequestProtocolMetaData(GRANT_LOCATION), null);
+            LoggingUtils.logEnabledMDC(grant != null ? grant.toString() : null, MessageType.RESPONSE, MessageDirection.SENT, grantId, MediaType.APPLICATION_JSON.toString(), "https", null, null);
+            if (grant != null) {
+                LoggingUtils.logEnabledMDC(grantId, MessageType.REQUEST, MessageDirection.RECEIVED, uuid.toString(), MediaType.APPLICATION_JSON.toString(), "https", getRequestProtocolMetaData(GRANT_LOCATION), grant.getVnfLcmOpOccId());
+                LoggingUtils.logEnabledMDC(grant != null ? grant.toString() : null, MessageType.RESPONSE, MessageDirection.SENT, grantId, MediaType.APPLICATION_JSON.toString(), "https", null, grant.getVnfLcmOpOccId());
+                return ResponseEntity.ok(grant);
+            } else {
+                LoggingUtils.logEnabledMDC(grantId, MessageType.REQUEST, MessageDirection.RECEIVED, uuid.toString(), MediaType.APPLICATION_JSON.toString(), "https", getRequestProtocolMetaData(GRANT_LOCATION), null);
+                LoggingUtils.logEnabledMDC(grant != null ? grant.toString() : null, MessageType.RESPONSE, MessageDirection.SENT, grantId, MediaType.APPLICATION_JSON.toString(), "https", null, null);
+                return ResponseEntity.accepted().build();
+            }
+        } catch (Exception e){
+            LoggingUtils.logEnabledMDC(e.getMessage(), MessageType.RESPONSE, MessageDirection.RECEIVED, uuid.toString(), MediaType.APPLICATION_JSON.toString(), "https", null, uuid.toString());
+            throw new GrantProviderException(String.format("Unable to communicate with Grant Provider on [%s]"), e);
         }
     }
 

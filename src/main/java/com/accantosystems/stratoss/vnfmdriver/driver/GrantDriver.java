@@ -89,29 +89,28 @@ public class GrantDriver {
             LoggingUtils.logEnabledMDC(grantRequestMsg, MessageType.REQUEST, MessageDirection.RECEIVED, uuid.toString(),MediaType.APPLICATION_JSON.toString(), "https",getRequestProtocolMetaData(url) ,driverRequestId);
             responseEntity = authenticatedRestTemplate.exchange(url, HttpMethod.POST, requestEntity, Grant.class);
             LoggingUtils.logEnabledMDC(responseEntity != null ? responseEntity.getBody().toString() : null, MessageType.RESPONSE,MessageDirection.SENT,uuid.toString(),MediaType.APPLICATION_JSON.toString(), "https",getProtocolMetaData(url,responseEntity),driverRequestId);
+
+            if (HttpStatus.CREATED.equals(responseEntity.getStatusCode())) {
+                // synchronous response - should find grant resource in body
+                if (responseEntity.getBody() == null) {
+                    throw new GrantProviderException("No response body");
+                }
+                return new GrantCreationResponse(responseEntity.getBody());
+            } else if (HttpStatus.ACCEPTED.equals(responseEntity.getStatusCode())) {
+                // asynchronous response - need to poll for grant resource, no body expected
+                if (responseEntity.getBody() != null) {
+                    throw new GrantProviderException("No response body expected");
+                }
+                String grantId = getGrantIdFromLocationHeader(responseEntity);
+                return new GrantCreationResponse(grantId);
+            } else {
+                throw new GrantProviderException(String.format("Invalid status code [%s] received", responseEntity.getStatusCode()));
+            }
         } catch (SOL003ResponseException e) {
             throw new GrantProviderException(String.format("Unable to communicate with Grant Provider on [%s] which gave status %s", url, e.getProblemDetails().getStatus()), e);
         } catch (Exception e) {
             throw new GrantProviderException(String.format("Unable to communicate with Grant Provider on [%s]", url), e);
         }
-
-        if (HttpStatus.CREATED.equals(responseEntity.getStatusCode())) {
-            // synchronous response - should find grant resource in body
-            if (responseEntity.getBody() == null) {
-                throw new GrantProviderException("No response body");
-            }
-            return new GrantCreationResponse(responseEntity.getBody());
-        } else if (HttpStatus.ACCEPTED.equals(responseEntity.getStatusCode())) {
-            // asynchronous response - need to poll for grant resource, no body expected
-            if (responseEntity.getBody() != null) {
-                throw new GrantProviderException("No response body expected");
-            }
-            String grantId = getGrantIdFromLocationHeader(responseEntity);
-            return new GrantCreationResponse(grantId);
-        } else {
-            throw new GrantProviderException(String.format("Invalid status code [%s] received", responseEntity.getStatusCode()));
-        }
-
     }
 
     /**
@@ -138,32 +137,36 @@ public class GrantDriver {
         headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
         final HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
         final ResponseEntity<Grant> responseEntity;
+        String driverRequestId = "";
+        UUID uuid = UUID.randomUUID();
         try {
-            UUID uuid = UUID.randomUUID();
-            LoggingUtils.logEnabledMDC(grantId, MessageType.REQUEST, MessageDirection.RECEIVED, uuid.toString(),MediaType.APPLICATION_JSON.toString(), "https",getRequestProtocolMetaData(url) ,null);
             responseEntity = authenticatedRestTemplate.exchange(url, HttpMethod.GET, requestEntity, Grant.class, grantId);
-            LoggingUtils.logEnabledMDC(responseEntity != null ? responseEntity.getBody().toString() : null, MessageType.RESPONSE,MessageDirection.SENT,uuid.toString(),MediaType.APPLICATION_JSON.toString(), "https",getProtocolMetaData(url,responseEntity),null);
+            if(responseEntity != null)
+                driverRequestId = responseEntity.getBody().getVnfLcmOpOccId();
+            LoggingUtils.logEnabledMDC(grantId, MessageType.REQUEST, MessageDirection.RECEIVED, uuid.toString(),MediaType.APPLICATION_JSON.toString(), "https",getRequestProtocolMetaData(url) ,driverRequestId);
+            LoggingUtils.logEnabledMDC(responseEntity != null ? responseEntity.getBody().toString() : null, MessageType.RESPONSE,MessageDirection.SENT,uuid.toString(),MediaType.APPLICATION_JSON.toString(), "https",getProtocolMetaData(url,responseEntity), driverRequestId);
+
+            if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
+                // grant was accepted and grant resource is available and should be found in body
+                if (responseEntity.getBody() == null) {
+                    throw new GrantProviderException("No response body");
+                }
+                return responseEntity.getBody();
+            } else if (HttpStatus.ACCEPTED.equals(responseEntity.getStatusCode())) {
+                // grant not yet accepted nor rejected - should continue to poll until grant resource available
+                if (responseEntity.getBody() != null) {
+                    throw new GrantProviderException("No response body expected");
+                }
+                return null;
+            } else {
+                throw new GrantProviderException(String.format("Invalid status code [%s] received", responseEntity.getStatusCode()));
+            }
         } catch (SOL003ResponseException e) {
             throw new GrantProviderException(String.format("Unable to communicate with Grant Provider on [%s] which gave status %s", url, e.getProblemDetails().getStatus()), e);
         } catch (Exception e) {
+            LoggingUtils.logEnabledMDC(e.getMessage(), MessageType.RESPONSE, MessageDirection.RECEIVED, uuid.toString(), MediaType.APPLICATION_JSON.toString(), "https", null, driverRequestId);
             throw new GrantProviderException(String.format("Unable to communicate with Grant Provider on [%s]", url), e);
         }
-        if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
-            // grant was accepted and grant resource is available and should be found in body
-            if (responseEntity.getBody() == null) {
-                throw new GrantProviderException("No response body");
-            }
-            return responseEntity.getBody();
-        } else if (HttpStatus.ACCEPTED.equals(responseEntity.getStatusCode())) {
-            // grant not yet accepted nor rejected - should continue to poll until grant resource available
-            if (responseEntity.getBody() != null) {
-                throw new GrantProviderException("No response body expected");
-            }
-            return null;
-        } else {
-            throw new GrantProviderException(String.format("Invalid status code [%s] received", responseEntity.getStatusCode()));
-        }
-
     }
 
     protected RestTemplate getAuthenticatedRestTemplate() {
