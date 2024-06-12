@@ -1,6 +1,7 @@
 package com.accantosystems.stratoss.vnfmdriver.service.impl;
 
 import java.time.Duration;
+import java.util.concurrent.CompletableFuture;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,10 +36,14 @@ public class KafkaExternalMessagingServiceImpl implements ExternalMessagingServi
     @Override public void sendExecutionAsyncResponse(ExecutionAsyncResponse request) {
         try {
             final String message = objectMapper.writeValueAsString(request);
-            ListenableFuture<SendResult<String, String>> future = kafkaTemplate.send(properties.getTopics().getLifecycleResponsesTopic(), message);
-
-            future.addCallback(sendResult -> logger.debug("ExecutionAsyncResponse successfully sent"),
-                               exception -> logger.warn("Exception sending ExecutionAsyncResponse", exception));
+            CompletableFuture<SendResult<String, String>> future = kafkaTemplate.send(properties.getTopics().getLifecycleResponsesTopic(), message);
+            future.whenComplete((sendResult, exception) -> {
+                if (exception != null) {
+                    logger.warn("Exception sending ExecutionAsyncResponse", exception);
+                } else {
+                    logger.debug("ExecutionAsyncResponse successfully sent");
+                }
+            });
         } catch (JsonProcessingException e) {
             logger.warn("Exception generating message text from ExecutionAsyncResponse", e);
         }
@@ -65,10 +70,14 @@ public class KafkaExternalMessagingServiceImpl implements ExternalMessagingServi
                 logger.error("Thread interrupted during sleep", e);
             }
             final String message = objectMapper.writeValueAsString(request);
-            ListenableFuture<SendResult<String, String>> future = kafkaTemplate.send(properties.getTopics().getLcmOpOccPollingTopic(), message);
-
-            future.addCallback(sendResult -> logger.debug("Submitted request to poll for LcmOpOcc [{}]", request.getVnfLcmOpOccId()),
-                               exception -> logger.warn("Exception sending LcmOpOccPollingRequest", exception));
+            CompletableFuture<SendResult<String, String>> future = kafkaTemplate.send(properties.getTopics().getLcmOpOccPollingTopic(), message);
+            future.whenComplete((sendResult, exception) -> {
+                if (exception != null) {
+                    logger.warn("Exception sending LcmOpOccPollingRequest", exception);
+                } else {
+                    logger.debug("Submitted request to poll for LcmOpOcc [{}]", request.getVnfLcmOpOccId());
+                }
+            });
         } catch (JsonProcessingException e) {
             logger.warn("Exception generating message text from LcmOpOccPollingRequest", e);
         }
