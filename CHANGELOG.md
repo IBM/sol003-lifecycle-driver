@@ -1,12 +1,20 @@
 # Change Log
 
+## [0.7.4](https://github.com/IBM/sol003-lifecycle-driver/tree/0.7.4) (2024-06-18)
+[Full Changelog](https://github.com/IBM/sol003-lifecycle-driver/compare/0.7.3...0.7.4)
+
+**Implemented enhancements:**
+
+- Uplifted SpringBoot to 3.1.12 and cloud-starter to 3.1.8 to fix security vulnerabilities
+
 ## [0.7.3](https://github.com/IBM/sol003-lifecycle-driver/tree/0.7.3) (2024-05-29)
 [Full Changelog](https://github.com/IBM/sol003-lifecycle-driver/compare/0.7.2...0.7.3)
 
 **Implemented enhancements:**
 
 - Fixed security vulnerabilities in base os image [\#206](https://github.com/IBM/sol003-lifecycle-driver/issues/206)
-- 
+
+
 ## [0.7.2](https://github.com/IBM/sol003-lifecycle-driver/tree/0.7.2) (2024-04-22)
 [Full Changelog](https://github.com/IBM/sol003-lifecycle-driver/compare/0.7.1...0.7.2)
 
